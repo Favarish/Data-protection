@@ -12,4 +12,13 @@ public class Vector {
         this.x = x;
         this.y = y;
     }
+
+    @Override
+    public String toString() {
+        return "Vector{" +
+                "gcd=" + gcd +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }
