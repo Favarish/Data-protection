@@ -122,6 +122,8 @@ public class Lab3 {
         File file = new File(fileName + "." + expansion);
 
         q = BigInteger.probablePrime(256, random);
+
+
         p = BigInteger.probablePrime(1024, random);
 
         b = (p.subtract(BigInteger.ONE)).divide(q);
@@ -130,7 +132,7 @@ public class Lab3 {
         do {
             g = BigInteger.probablePrime(1023, random);
             a = Lab1.fastModuloExponentiation(g, b, p);
-        } while (a.compareTo(BigInteger.TWO) >= 0 );
+        } while (a.compareTo(BigInteger.ONE) != 1);
 
         //bitLength просто меньше 256
         x = BigInteger.probablePrime(bitLength, random);
@@ -141,7 +143,7 @@ public class Lab3 {
             h = h.abs();
             do {
                 k = BigInteger.probablePrime(bitLength, random);
-                r = Lab1.fastModuloExponentiation(a, k, p);
+                r = Lab1.fastModuloExponentiation(a, k, q);
             } while (r.compareTo(BigInteger.ZERO) == 0);
 
             do {
@@ -164,10 +166,10 @@ public class Lab3 {
         }
 //        Vector vector = Lab1.generalizedEuclidsAlgorithm(q, h);
 //        hMinOne = vector.y.add(q);
-        hMinOne = h.modInverse(p);
+        hMinOne = h.modInverse(q);
         u1 = (s.multiply(hMinOne)).mod(q);
-        u2 = ((r.multiply(new BigInteger("-1"))).multiply(hMinOne)).mod(q);
-        v = (Lab1.fastModuloExponentiation(a, u1, p).multiply(Lab1.fastModuloExponentiation(y, u2, p))).mod(q);
+        u2 = (((r).multiply(hMinOne)).mod(q)).multiply(new BigInteger("-1"));
+        v = (Lab1.fastModuloExponentiation(a, u1, p).multiply(Lab1.fastModuloExponentiation(y, u2, p))).mod(p).mod(q);
 
         if (v.compareTo(r) == 0) {
             System.out.println("Проверка подписи ГОСТ успешно пройдена!");
