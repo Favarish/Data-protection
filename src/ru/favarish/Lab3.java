@@ -116,8 +116,64 @@ public class Lab3 {
         }
     }
 
-    public static void digitalSignatureGOST() {
+    public static void digitalSignatureGOST() throws IOException {
+        Random random = new Random();
+        BigInteger p, q, b, g, a, x, y, h, hMinOne, k, r, s, u1, u2, v;
+        File file = new File(fileName + "." + expansion);
 
+        q = BigInteger.probablePrime(256, random);
+        p = BigInteger.probablePrime(1024, random);
+
+        b = (p.subtract(BigInteger.ONE)).divide(q);
+
+        //магическим образом вычисляем а
+        do {
+            g = BigInteger.probablePrime(1023, random);
+            a = Lab1.fastModuloExponentiation(g, b, p);
+        } while (a.compareTo(BigInteger.TWO) >= 0 );
+
+        //bitLength просто меньше 256
+        x = BigInteger.probablePrime(bitLength, random);
+        y = Lab1.fastModuloExponentiation(a, x, p);
+
+        try (FileWriter fileWriter = new FileWriter("digitalSignatureGOST")){
+            h = new BigInteger(file.hashCode() + "");
+            h = h.abs();
+            do {
+                k = BigInteger.probablePrime(bitLength, random);
+                r = Lab1.fastModuloExponentiation(a, k, p);
+            } while (r.compareTo(BigInteger.ZERO) == 0);
+
+            do {
+                s = ((k.multiply(h)).add(x.multiply(r))).mod(q);
+            } while (s.compareTo(BigInteger.ZERO) == 0);
+            fileWriter.write(r + " " + s);
+        }
+
+        //проверка подписи
+        BufferedReader reader = new BufferedReader(new FileReader("digitalSignatureGOST"));
+        h = new BigInteger(file.hashCode() + "");
+        h = h.abs();
+        String[] str = reader.readLine().split(" ");
+        r = new BigInteger(str[0]);
+        s = new BigInteger(str[1]);
+        if (r.compareTo(q) >= 0 || s.compareTo(q) >= 0) {
+            System.out.println("Числа r/s не удовлетворяют диапазону 0<r<q или 0<s<q!\n" +
+                    "Дальнейшая проверка подписи не имеет смысла!");
+            return;
+        }
+//        Vector vector = Lab1.generalizedEuclidsAlgorithm(q, h);
+//        hMinOne = vector.y.add(q);
+        hMinOne = h.modInverse(p);
+        u1 = (s.multiply(hMinOne)).mod(q);
+        u2 = ((r.multiply(new BigInteger("-1"))).multiply(hMinOne)).mod(q);
+        v = (Lab1.fastModuloExponentiation(a, u1, p).multiply(Lab1.fastModuloExponentiation(y, u2, p))).mod(q);
+
+        if (v.compareTo(r) == 0) {
+            System.out.println("Проверка подписи ГОСТ успешно пройдена!");
+        } else {
+            System.out.println("Цифровая подпись не прошла проверку! (ГОСТ)");
+        }
     }
 
 
