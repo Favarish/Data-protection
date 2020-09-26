@@ -93,12 +93,15 @@ public class Main {
         BigInteger result = bigInteger.gcd(bigInteger2);
         System.out.println(result);*/
         //System.out.println(Lab1.fastModuloExponentiation(new BigInteger("3"), new BigInteger("-1"), new BigInteger("40")));
-        Lab2.cipherShamir();
-        Lab2.cipherElGamal();
-        Lab2.cipherRSA();
-        Lab2.cipherVernam();
-//        Lab3.digitalSignatureRSA();
 
+//        Lab2.cipherShamir();
+//        Lab2.cipherElGamal();
+//        Lab2.cipherRSA();
+//        Lab2.cipherVernam();
+
+        Lab3.digitalSignatureRSA();
+        Lab3.digitalSignatureElGamal();
+        Lab3.digitalSignatureGOST();
     }
 
 }

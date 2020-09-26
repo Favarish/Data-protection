@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import static ru.favarish.Lab1.fastModuloExponentiation;
+
 public class Lab3 {
     private static final String fileName = "example";
     private static final String expansion = "png";
@@ -45,7 +47,7 @@ public class Lab3 {
         try (FileWriter fileWriter = new FileWriter("hashCodeRSA")) {
             y = new BigInteger(file.hashCode() + "");
             y = y.abs();
-            s = Lab1.fastModuloExponentiation(y, c, n);
+            s = fastModuloExponentiation(y, c, n);
             fileWriter.write(s.toString());
         }
 
@@ -54,10 +56,12 @@ public class Lab3 {
         y = new BigInteger(file.hashCode() + "");
         y = y.abs();
         s = new BigInteger(reader.readLine());
-        w = Lab1.fastModuloExponentiation(s, d, n);
+        w = fastModuloExponentiation(s, d, n);
 
         if (w.compareTo(y) == 0) {
-            System.out.println(w + " = " + y);
+            System.out.println("Проверка подписи RSA успешно пройдена! "/* + w + " = " + y*/);
+        } else {
+            System.out.println("Подпись не прошла проверку! (RSA)");
         }
     }
 
@@ -73,9 +77,9 @@ public class Lab3 {
 
         do {
             g = BigInteger.probablePrime(bitLength - 1, random);
-        } while (Lab1.fastModuloExponentiation(g, q, p).compareTo(BigInteger.ONE) == 0);
+        } while (fastModuloExponentiation(g, q, p).compareTo(BigInteger.ONE) == 0);
         x = BigInteger.probablePrime(bitLength - 1, random);
-        y = Lab1.fastModuloExponentiation(g, x, p);
+        y = fastModuloExponentiation(g, x, p);
 
         try (FileWriter fileWriter = new FileWriter("hashCodeElGamal")){
             Vector vector;
@@ -86,7 +90,7 @@ public class Lab3 {
                 vector = Lab1.generalizedEuclidsAlgorithm(p.subtract(BigInteger.ONE), k);
             } while (vector.gcd.compareTo(BigInteger.ONE) != 0);
 
-            r = Lab1.fastModuloExponentiation(g, k, p);
+            r = fastModuloExponentiation(g, k, p);
             u = (h.subtract(x.multiply(r))).mod(p.subtract(BigInteger.ONE));
             if (u.compareTo(BigInteger.ZERO) < 0) {
 //                u = u.add(p.subtract(BigInteger.ONE));
@@ -106,13 +110,13 @@ public class Lab3 {
         r = new BigInteger(str[0]);
         s = new BigInteger(str[1]);
 
-        BigInteger temp1 = (Lab1.fastModuloExponentiation(y, r, p).multiply(Lab1.fastModuloExponentiation(r, s, p))).mod(p);
-        BigInteger temp2 = Lab1.fastModuloExponentiation(g, h, p);
+        BigInteger temp1 = (fastModuloExponentiation(y, r, p).multiply(fastModuloExponentiation(r, s, p))).mod(p);
+        BigInteger temp2 = fastModuloExponentiation(g, h, p);
 
         if (temp1.compareTo(temp2) == 0) {
-            System.out.println("Проверка подписи пройдена успешно");
+            System.out.println("Проверка подписи Эль-Гамаль успешно пройдена!");
         } else {
-            System.out.println("Подпись НЕ прошла проверку!");
+            System.out.println("Подпись НЕ прошла проверку! (Эль Гамаль)");
         }
     }
 
@@ -121,29 +125,35 @@ public class Lab3 {
         BigInteger p, q, b, g, a, x, y, h, hMinOne, k, r, s, u1, u2, v;
         File file = new File(fileName + "." + expansion);
 
-        q = BigInteger.probablePrime(256, random);
+        do {
+            q = BigInteger.probablePrime(256, random);
 
+            b = new BigInteger(769, random);
 
-        p = BigInteger.probablePrime(1024, random);
+            p = new BigInteger((b.multiply(q).add(BigInteger.ONE)).toString());
+        } while (!p.isProbablePrime(3));
 
-        b = (p.subtract(BigInteger.ONE)).divide(q);
 
         //магическим образом вычисляем а
         do {
-            g = BigInteger.probablePrime(1023, random);
-            a = Lab1.fastModuloExponentiation(g, b, p);
-        } while (a.compareTo(BigInteger.ONE) != 1);
+            g = new BigInteger(p.bitLength(), random);
+        } while (fastModuloExponentiation(g, q, p).compareTo(BigInteger.ONE) == 0);
+
+        do {
+            a = fastModuloExponentiation(g, (p.subtract(BigInteger.ONE)).divide(q), p);
+//            a = BigInteger.probablePrime(1023, random);
+        } while (/*fastModuloExponentiation(a, q, p).compareTo(BigInteger.ONE) != 0*/a.compareTo(BigInteger.ONE) != 1);
 
         //bitLength просто меньше 256
         x = BigInteger.probablePrime(bitLength, random);
-        y = Lab1.fastModuloExponentiation(a, x, p);
+        y = fastModuloExponentiation(a, x, p);
 
         try (FileWriter fileWriter = new FileWriter("digitalSignatureGOST")){
             h = new BigInteger(file.hashCode() + "");
             h = h.abs();
             do {
                 k = BigInteger.probablePrime(bitLength, random);
-                r = Lab1.fastModuloExponentiation(a, k, q);
+                r = fastModuloExponentiation(a, k, p).mod(q);
             } while (r.compareTo(BigInteger.ZERO) == 0);
 
             do {
@@ -168,8 +178,8 @@ public class Lab3 {
 //        hMinOne = vector.y.add(q);
         hMinOne = h.modInverse(q);
         u1 = (s.multiply(hMinOne)).mod(q);
-        u2 = (((r).multiply(hMinOne)).mod(q)).multiply(new BigInteger("-1"));
-        v = (Lab1.fastModuloExponentiation(a, u1, p).multiply(Lab1.fastModuloExponentiation(y, u2, p))).mod(p).mod(q);
+        u2 = (((r).multiply(hMinOne)).multiply(new BigInteger("-1"))).mod(q);
+        v = (fastModuloExponentiation(a, u1, p).multiply(fastModuloExponentiation(y, u2, p))).mod(p).mod(q);
 
         if (v.compareTo(r) == 0) {
             System.out.println("Проверка подписи ГОСТ успешно пройдена!");
