@@ -5,6 +5,13 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Лабораторная работа № 4 - Ментальный покер
+ *
+ * Игрок players.get(numberPlayers) - условный крупье. Так же участвует в шифровке карт.
+ * В итоге у него оказываются карты для выкладывания на стол
+ */
+
 public class Lab4 {
     private static final int bitLength = 40;
 
@@ -34,7 +41,9 @@ public class Lab4 {
         LinkedList<Player> players = new LinkedList<>();
         Map<Integer, String> cards = createCards();
         ArrayList<Integer> hashCards = new ArrayList<>(cards.keySet());
-        int numberPlayers;
+        //игровая колода
+        ArrayList<BigInteger> playingDeck;
+        int numberPlayers = 0;
 
 
         do {
@@ -46,16 +55,61 @@ public class Lab4 {
         } while (!p.isProbablePrime(3));
 
         do {
-            System.out.println("Введите количество игроков (от 2 до 8!)\n");
-            numberPlayers = Integer.valueOf(in.nextLine());
+            try {
+                System.out.println("Введите количество игроков (от 2 до 8!)\n");
+                numberPlayers = Integer.valueOf(in.nextLine());
+            } catch (NumberFormatException ex) {
+                System.out.println("Ну почти 8...");
+            }
         } while (numberPlayers < 2 || numberPlayers > 8);
 
-        players = initPlayers(numberPlayers, p, q);
+        players = initPlayers(numberPlayers + 1, p, q);
 
-        encryptionCycle(players, );
+        playingDeck = encryptionCycle(players, hashCards);
 
+        for (Player pl : players) {
+            takeCards(players, pl, playingDeck);
+        }
+
+        String[] example = new String[2];
+        example[0] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(0).toString()));
+        example[1] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(1).toString()));
+
+        System.out.println("Карты крупье: " + example[0] + " и " + example[1]);
     }
 
+
+    public static void takeCards(LinkedList<Player> players, Player player, ArrayList<BigInteger> playingDeck) {
+        ArrayList<BigInteger> cards = new ArrayList<>();
+
+        for (Player p : players) {
+            if (p == player) {
+                continue;
+            }
+            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getC(), p.getN()));
+            playingDeck.set(1, decipherRSA(playingDeck.get(1), p.getC(), p.getN()));
+        }
+
+        cards.add(decipherRSA(playingDeck.get(0), player.getC(), player.getN()));
+        cards.add(decipherRSA(playingDeck.get(1), player.getC(), player.getN()));
+        playingDeck.remove(0);
+        playingDeck.remove(0);
+
+        player.setCards(cards);
+    }
+
+    public static void takeCardForStickman(LinkedList<Player> players, ArrayList<BigInteger> playingDeck) {
+        for (Player p : players) {
+            if (p == players.get(players.size() - 1)) {
+                continue;
+            }
+            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getC(), p.getN()));
+        }
+
+        players.get(players.size() - 1).getCards().add(playingDeck.get(0));
+
+        playingDeck.remove(0);
+    }
 
     public static Map<Integer, String> createCards() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("cards.txt"));
@@ -82,63 +136,48 @@ public class Lab4 {
     }
 
 
-    public static void encryptionCycle(LinkedList<Player> players, ) {
+    public static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<Integer> hashCards) {
+        ArrayList<BigInteger> result;
 
+        result = copyToBigIntArray(hashCards);
+
+        for (Player player : players) {
+            for (BigInteger b : result) {
+                b = encryptRSA(player.getP(), player.getQ(), player.getC(), player.getD(), b);
+            }
+            result.sort(BigInteger::compareTo);
+        }
+
+        return result;
+    }
+
+//    public static ArrayList<BigInteger> requestForDecipher(Player player, ArrayList<BigInteger>)
+
+    public static ArrayList<BigInteger> copyToBigIntArray(ArrayList<Integer> hashCards) {
+        ArrayList<BigInteger> result = new ArrayList<>();
+
+        for (Integer i : hashCards) {
+            result.add(new BigInteger(i.toString()));
+        }
+
+        return result;
     }
 
 
-    public static void encryptRSA(BigInteger p, BigInteger q, BigInteger c, BigInteger d) throws IOException {
-
-        Random random = new Random();
-        BigInteger  n, f, e, perem;
-        Vector resultEuclid;
-        //FileInputStream fileInputStream = new FileInputStream(fileName + "." + expansion);
-
+    public static BigInteger encryptRSA(BigInteger p, BigInteger q, BigInteger c, BigInteger d, BigInteger m) {
+        BigInteger  n, e;
 
         n = q.multiply(p);
-        f = (p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)));
+        e = Lab1.fastModuloExponentiation(m, d, n);
 
-//        while (true) {
-//            d = BigInteger.probablePrime(bitLength, random);
-//            resultEuclid = Lab1.generalizedEuclidsAlgorithm(f, d);
-//            if (resultEuclid.gcd.compareTo(BigInteger.ONE) == 0) {
-//                break;
-//            }
-//        }
-//
-//        if (resultEuclid.y.compareTo(BigInteger.ZERO) < 0) {
-//            resultEuclid.y = resultEuclid.y.add(f);
-//        }
-//        c = resultEuclid.y;
-
-        //byte[] readBytes = fileInputStream.readAllBytes();
-
-//        try (FileWriter fileWriter = new FileWriter("RSAEncoder." + expansion)) {
-//            for (byte i : readBytes) {
-//                int intByte = i + 128;
-//                BigInteger temp = new BigInteger(intByte + "");
-//                e = Lab1.fastModuloExponentiation(temp, d, n);
-//                fileWriter.write(e + "\n");
-//            }
-//        }
-
-//        //расшифоровка
-//        BufferedReader reader = new BufferedReader(new FileReader("RSAEncoder." + expansion));
-//        try (FileOutputStream fileOutputStream = new FileOutputStream("RSADecoder." + expansion)) {
-//            String str;
-//            byte[] bytes = new byte[readBytes.length];
-//            int i = 0;
-//
-//            while ((str = reader.readLine()) != null) {
-//                perem = Lab1.fastModuloExponentiation(new BigInteger(str), c, n);
-//                bytes[i] = (byte) (Integer.valueOf(perem + "") - 128);
-//                i++;
-//            }
-//            fileOutputStream.write(bytes);
-//        }
+        return e;
     }
 
-    public static void decipherRSA() {
+    public static BigInteger decipherRSA(BigInteger m, BigInteger c, BigInteger n) {
+        BigInteger result;
 
+        result = Lab1.fastModuloExponentiation(m, c, n);
+
+        return result;
     }
 }
