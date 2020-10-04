@@ -14,31 +14,13 @@ import java.util.stream.Collectors;
 
 public class Lab4 {
     private static final int bitLength = 40;
+    private static BigInteger p;
 
-//    public static void writeFileCards() throws IOException {
-//        FileWriter writer = new FileWriter("cards.txt");
-//
-//        String[] strs = {"П", "Ч", "Б", "К"};
-//
-//        for (int i = 0; i < strs.length; i++) {
-//            for (int j = 2; j < 11; j++) {
-//                writer.write(strs[i] + " " + j + "\n");
-//            }
-//            writer.write(strs[i] + " V\n");
-//            writer.write(strs[i] + " D\n");
-//            writer.write(strs[i] + " K\n");
-//            writer.write(strs[i] + " T\n");
-//        }
-//
-//        writer.close();
-//    }
-
-    public static void mentalPoker() throws IOException {
+    static void mentalPoker() throws IOException {
 
         Random random = new Random();
         Scanner in = new Scanner(System.in);
-        BigInteger p, q;
-        LinkedList<Player> players = new LinkedList<>();
+        LinkedList<Player> players;
         Map<Integer, String> cards = createCards();
         ArrayList<Integer> hashCards = new ArrayList<>(cards.keySet());
         //игровая колода
@@ -46,13 +28,8 @@ public class Lab4 {
         int numberPlayers = 0;
 
 
-        do {
-            q = BigInteger.probablePrime(bitLength, random);
-        } while (!q.isProbablePrime(3));
+        p = BigInteger.probablePrime(bitLength, random);
 
-        do {
-            p = BigInteger.probablePrime(bitLength, random);
-        } while (!p.isProbablePrime(3));
 
         do {
             try {
@@ -63,7 +40,7 @@ public class Lab4 {
             }
         } while (numberPlayers < 2 || numberPlayers > 8);
 
-        players = initPlayers(numberPlayers + 1, p, q);
+        players = initPlayers(numberPlayers + 1, p);
 
         playingDeck = encryptionCycle(players, hashCards);
 
@@ -71,47 +48,67 @@ public class Lab4 {
             takeCards(players, pl, playingDeck);
         }
 
-        String[] example = new String[2];
-        example[0] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(0).toString()));
-        example[1] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(1).toString()));
+        //Добавляем крупье (на стол) еще одну карту
+        takeCardForStickman(players, playingDeck);
 
-        System.out.println("Карты крупье: " + example[0] + " и " + example[1]);
+        showPlayerCards(players, cards);
+//        String[] example = new String[2];
+//        example[0] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(0).toString()));
+//        example[1] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(1).toString()));
+//
+//        System.out.println("Карты крупье: " + example[0] + " и " + example[1]);
     }
 
 
-    public static void takeCards(LinkedList<Player> players, Player player, ArrayList<BigInteger> playingDeck) {
+    private static void takeCards(LinkedList<Player> players, Player player, ArrayList<BigInteger> playingDeck) {
         ArrayList<BigInteger> cards = new ArrayList<>();
 
         for (Player p : players) {
             if (p == player) {
                 continue;
             }
-            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getC(), p.getN()));
-            playingDeck.set(1, decipherRSA(playingDeck.get(1), p.getC(), p.getN()));
+            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getD()));
+            playingDeck.set(1, decipherRSA(playingDeck.get(1), p.getD()));
         }
 
-        cards.add(decipherRSA(playingDeck.get(0), player.getC(), player.getN()));
-        cards.add(decipherRSA(playingDeck.get(1), player.getC(), player.getN()));
+        cards.add(decipherRSA(playingDeck.get(0), player.getD()));
+        cards.add(decipherRSA(playingDeck.get(1), player.getD()));
         playingDeck.remove(0);
         playingDeck.remove(0);
 
         player.setCards(cards);
     }
 
-    public static void takeCardForStickman(LinkedList<Player> players, ArrayList<BigInteger> playingDeck) {
+    private static void takeCardForStickman(LinkedList<Player> players, ArrayList<BigInteger> playingDeck) {
+        Player stickman = players.get(players.size() - 1);
+
         for (Player p : players) {
-            if (p == players.get(players.size() - 1)) {
+            if (p == stickman) {
                 continue;
             }
-            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getC(), p.getN()));
+            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getD()));
         }
 
-        players.get(players.size() - 1).getCards().add(playingDeck.get(0));
+        stickman.getCards().add(decipherRSA(playingDeck.get(0), stickman.getD()));
 
         playingDeck.remove(0);
     }
 
-    public static Map<Integer, String> createCards() throws IOException {
+    private static void showPlayerCards(LinkedList<Player> players, Map<Integer, String> cards) {
+        players.forEach(s -> {
+            StringBuilder sb = new StringBuilder();
+
+            s.getCards().forEach(c -> {
+                sb.append(cards.get(Integer.valueOf(c + "")));
+                sb.append(" | ");
+            });
+            sb.append("\n");
+
+            System.out.println(sb);
+        });
+    }
+
+    private static Map<Integer, String> createCards() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("cards.txt"));
         Map<Integer, String> result = new HashMap<>();
 
@@ -124,36 +121,34 @@ public class Lab4 {
     }
 
 
-    public static LinkedList<Player> initPlayers(int numberPlayers, BigInteger p, BigInteger q) {
+    private static LinkedList<Player> initPlayers(int numberPlayers, BigInteger p) {
 
         LinkedList<Player> result = new LinkedList<>();
 
         for (int i = 0; i < numberPlayers; i++) {
-            result.add(new Player(p, q));
+            result.add(new Player(p));
         }
 
         return result;
     }
 
 
-    public static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<Integer> hashCards) {
+    private static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<Integer> hashCards) {
         ArrayList<BigInteger> result;
 
         result = copyToBigIntArray(hashCards);
 
         for (Player player : players) {
-            for (BigInteger b : result) {
-                b = encryptRSA(player.getP(), player.getQ(), player.getC(), player.getD(), b);
-            }
-            result.sort(BigInteger::compareTo);
+            result = (ArrayList<BigInteger>) result.stream()
+                    .map(b -> encryptRSA(b, player.getC()))
+                    .sorted(BigInteger::compareTo)
+                    .collect(Collectors.toList());
         }
 
         return result;
     }
 
-//    public static ArrayList<BigInteger> requestForDecipher(Player player, ArrayList<BigInteger>)
-
-    public static ArrayList<BigInteger> copyToBigIntArray(ArrayList<Integer> hashCards) {
+    private static ArrayList<BigInteger> copyToBigIntArray(ArrayList<Integer> hashCards) {
         ArrayList<BigInteger> result = new ArrayList<>();
 
         for (Integer i : hashCards) {
@@ -163,21 +158,11 @@ public class Lab4 {
         return result;
     }
 
-
-    public static BigInteger encryptRSA(BigInteger p, BigInteger q, BigInteger c, BigInteger d, BigInteger m) {
-        BigInteger  n, e;
-
-        n = q.multiply(p);
-        e = Lab1.fastModuloExponentiation(m, d, n);
-
-        return e;
+    private static BigInteger encryptRSA( BigInteger m, BigInteger c) {
+        return Lab1.fastModuloExponentiation(m, c, p);
     }
 
-    public static BigInteger decipherRSA(BigInteger m, BigInteger c, BigInteger n) {
-        BigInteger result;
-
-        result = Lab1.fastModuloExponentiation(m, c, n);
-
-        return result;
+    private static BigInteger decipherRSA(BigInteger m, BigInteger d) {
+        return Lab1.fastModuloExponentiation(m, d, p);
     }
 }

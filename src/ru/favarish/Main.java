@@ -99,9 +99,11 @@ public class Main {
 //        Lab2.cipherRSA();
 //        Lab2.cipherVernam();
 
-        Lab3.digitalSignatureRSA();
-        Lab3.digitalSignatureElGamal();
-        Lab3.digitalSignatureGOST();
+//        Lab3.digitalSignatureRSA();
+//        Lab3.digitalSignatureElGamal();
+//        Lab3.digitalSignatureGOST();
+        Lab4.mentalPoker();
+
     }
 
 }
