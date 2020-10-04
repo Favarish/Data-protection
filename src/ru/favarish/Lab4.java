@@ -98,6 +98,7 @@ public class Lab4 {
         players.forEach(s -> {
             StringBuilder sb = new StringBuilder();
 
+            sb.append("| ");
             s.getCards().forEach(c -> {
                 sb.append(cards.get(Integer.valueOf(c + "")));
                 sb.append(" | ");
