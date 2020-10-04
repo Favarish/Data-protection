@@ -22,10 +22,13 @@ public class Lab4 {
         Scanner in = new Scanner(System.in);
         LinkedList<Player> players;
         Map<Integer, String> cards = createCards();
-        ArrayList<Integer> hashCards = new ArrayList<>(cards.keySet());
         //игровая колода
-        ArrayList<BigInteger> playingDeck;
+        ArrayList<BigInteger> playingDeck = new ArrayList<>();
         int numberPlayers = 0;
+
+        for (Integer i : cards.keySet()) {
+            playingDeck.add(new BigInteger(i.toString()));
+        }
 
 
         p = BigInteger.probablePrime(bitLength, random);
@@ -42,21 +45,18 @@ public class Lab4 {
 
         players = initPlayers(numberPlayers + 1, p);
 
-        playingDeck = encryptionCycle(players, hashCards);
+        playingDeck = encryptionCycle(players, playingDeck);
 
         for (Player pl : players) {
             takeCards(players, pl, playingDeck);
         }
 
-        //Добавляем крупье (на стол) еще одну карту
+        //Добавляем крупье (на стол) еще по одной карте
+        takeCardForStickman(players, playingDeck);
+        takeCardForStickman(players, playingDeck);
         takeCardForStickman(players, playingDeck);
 
         showPlayerCards(players, cards);
-//        String[] example = new String[2];
-//        example[0] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(0).toString()));
-//        example[1] = cards.get(Integer.valueOf(players.get(numberPlayers).getCards().get(1).toString()));
-//
-//        System.out.println("Карты крупье: " + example[0] + " и " + example[1]);
     }
 
 
@@ -134,29 +134,15 @@ public class Lab4 {
     }
 
 
-    private static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<Integer> hashCards) {
-        ArrayList<BigInteger> result;
-
-        result = copyToBigIntArray(hashCards);
-
+    private static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<BigInteger> playingDeck) {
         for (Player player : players) {
-            result = (ArrayList<BigInteger>) result.stream()
+            playingDeck = (ArrayList<BigInteger>) playingDeck.stream()
                     .map(b -> encryptRSA(b, player.getC()))
                     .sorted(BigInteger::compareTo)
                     .collect(Collectors.toList());
         }
 
-        return result;
-    }
-
-    private static ArrayList<BigInteger> copyToBigIntArray(ArrayList<Integer> hashCards) {
-        ArrayList<BigInteger> result = new ArrayList<>();
-
-        for (Integer i : hashCards) {
-            result.add(new BigInteger(i.toString()));
-        }
-
-        return result;
+        return playingDeck;
     }
 
     private static BigInteger encryptRSA( BigInteger m, BigInteger c) {
