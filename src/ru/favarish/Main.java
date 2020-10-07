@@ -102,8 +102,8 @@ public class Main {
 //        Lab3.digitalSignatureRSA();
 //        Lab3.digitalSignatureElGamal();
 //        Lab3.digitalSignatureGOST();
-        Lab4.mentalPoker();
-
+//        Lab4.mentalPoker();
+        Lab5.Vote();
     }
 
 }

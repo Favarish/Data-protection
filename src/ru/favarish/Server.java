@@ -1,15 +1,18 @@
 package ru.favarish;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class Server {
     private static Server single;
     private static final int bitLength = 1024;
     private static final int address = 314159265;
     private static FileWriter fileWriter;
+    private static Map<BigInteger, String> resultVote;
     private BigInteger p;
     private BigInteger q;
     private BigInteger n;
@@ -20,6 +23,7 @@ public class Server {
     private Server() throws IOException {
         Random random = new Random();
         Vector resultEuclid;
+        readFile();
         fileWriter = new FileWriter("Result Vote.txt");
 
         do {
@@ -53,21 +57,40 @@ public class Server {
     }
 
     public boolean checkVoice(BigInteger[] bulletin, String name) throws IOException {
-        char voteChar = bulletin[0].toString(2).charAt(513);
+        char voteChar = bulletin[0].toString(2).charAt(bulletin[0].toString(2).length() - 1);
         String vote = new String();
 
         if (voteChar == '0') {
-            vote = "За си";
+            vote = "Си";
         } else if (voteChar == '1') {
-            vote = "За Джавку";
+            vote = "Джавка";
         }
 
-        if (new BigInteger(bulletin[0].hashCode() + "").compareTo(Lab1.fastModuloExponentiation(bulletin[1], d, n)) == 0) {
-            fileWriter.write(name + " " + vote);
-            return true;
+        if (new BigInteger(bulletin[0].hashCode() + "").abs().compareTo(Lab1.fastModuloExponentiation(bulletin[1], d, n)) == 0) {
+            if (!resultVote.containsKey(new BigInteger(bulletin[0].hashCode() + "").abs())) {
+                resultVote.put(new BigInteger(bulletin[0].hashCode() + "").abs(), vote);
+                return true;
+            }
+            return false;
         } else {
             return false;
         }
+    }
+
+    private static Map<BigInteger, String> readFile() throws IOException {
+        resultVote = new HashMap<>();
+
+        File file = new File("Result Vote.txt");
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+
+        String temp = new String();
+        while ((temp = reader.readLine()) != null) {
+            String[] tmpMas = temp.split(" ");
+
+            resultVote.put(new BigInteger(tmpMas[0]), tmpMas[1]);
+        }
+
+        return resultVote;
     }
 
     public static Server startServer() throws IOException {
@@ -75,6 +98,14 @@ public class Server {
             single = new Server();
         }
         return single;
+    }
+
+    public static void stopServer() throws IOException {
+        for (Map.Entry<BigInteger, String> map : resultVote.entrySet()) {
+            fileWriter.write(map.getKey() + " " + map.getValue() + "\n");
+        }
+
+        fileWriter.close();
     }
 
     public static int getAddress() {

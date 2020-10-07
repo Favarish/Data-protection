@@ -41,7 +41,7 @@ public class Lab4 {
             } catch (NumberFormatException ex) {
                 System.out.println("Ну почти 8...");
             }
-        } while (numberPlayers < 2 || numberPlayers > 8);
+        } while (numberPlayers < 2 || numberPlayers > 24);
 
         players = initPlayers(numberPlayers + 1, p);
 
@@ -67,12 +67,12 @@ public class Lab4 {
             if (p == player) {
                 continue;
             }
-            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getD()));
-            playingDeck.set(1, decipherRSA(playingDeck.get(1), p.getD()));
+            playingDeck.set(0, decipher(playingDeck.get(0), p.getD()));
+            playingDeck.set(1, decipher(playingDeck.get(1), p.getD()));
         }
 
-        cards.add(decipherRSA(playingDeck.get(0), player.getD()));
-        cards.add(decipherRSA(playingDeck.get(1), player.getD()));
+        cards.add(decipher(playingDeck.get(0), player.getD()));
+        cards.add(decipher(playingDeck.get(1), player.getD()));
         playingDeck.remove(0);
         playingDeck.remove(0);
 
@@ -86,10 +86,10 @@ public class Lab4 {
             if (p == stickman) {
                 continue;
             }
-            playingDeck.set(0, decipherRSA(playingDeck.get(0), p.getD()));
+            playingDeck.set(0, decipher(playingDeck.get(0), p.getD()));
         }
 
-        stickman.getCards().add(decipherRSA(playingDeck.get(0), stickman.getD()));
+        stickman.getCards().add(decipher(playingDeck.get(0), stickman.getD()));
 
         playingDeck.remove(0);
     }
@@ -137,7 +137,7 @@ public class Lab4 {
     private static ArrayList<BigInteger> encryptionCycle(LinkedList<Player> players, ArrayList<BigInteger> playingDeck) {
         for (Player player : players) {
             playingDeck = (ArrayList<BigInteger>) playingDeck.stream()
-                    .map(b -> encryptRSA(b, player.getC()))
+                    .map(b -> encrypt(b, player.getC()))
                     .sorted(BigInteger::compareTo)
                     .collect(Collectors.toList());
         }
@@ -145,11 +145,11 @@ public class Lab4 {
         return playingDeck;
     }
 
-    private static BigInteger encryptRSA( BigInteger m, BigInteger c) {
+    private static BigInteger encrypt(BigInteger m, BigInteger c) {
         return Lab1.fastModuloExponentiation(m, c, p);
     }
 
-    private static BigInteger decipherRSA(BigInteger m, BigInteger d) {
+    private static BigInteger decipher(BigInteger m, BigInteger d) {
         return Lab1.fastModuloExponentiation(m, d, p);
     }
 }
