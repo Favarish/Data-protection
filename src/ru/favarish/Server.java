@@ -56,7 +56,7 @@ public class Server {
         return Lab1.fastModuloExponentiation(_h, c, n);
     }
 
-    public boolean checkVoice(BigInteger[] bulletin, String name) throws IOException {
+    public int checkVoice(BigInteger[] bulletin, String name) throws IOException {
         char voteChar = bulletin[0].toString(2).charAt(bulletin[0].toString(2).length() - 1);
         String vote = new String();
 
@@ -67,13 +67,15 @@ public class Server {
         }
 
         if (new BigInteger(bulletin[0].hashCode() + "").abs().compareTo(Lab1.fastModuloExponentiation(bulletin[1], d, n)) == 0) {
-            if (!resultVote.containsKey(new BigInteger(bulletin[0].hashCode() + "").abs())) {
+            if (!resultVote.containsKey(new BigInteger(bulletin[0].hashCode() + "").abs())
+                    && !resultVote.containsKey(new BigInteger(bulletin[0].hashCode() + "").abs().add(BigInteger.ONE))
+                    && !resultVote.containsKey(new BigInteger(bulletin[0].hashCode() + "").abs().subtract(BigInteger.ONE))) {
                 resultVote.put(new BigInteger(bulletin[0].hashCode() + "").abs(), vote);
-                return true;
+                return 1;
             }
-            return false;
+            return 2;
         } else {
-            return false;
+            return 3;
         }
     }
 

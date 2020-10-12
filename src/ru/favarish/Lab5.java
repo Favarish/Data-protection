@@ -59,13 +59,22 @@ public class Lab5 {
         bulletin[0] = n;
         bulletin[1] = s;
 
-        if (server.checkVoice(bulletin, "Alice")) {
-            System.out.println("Ваш голос успешно зачтен!");
-        } else {
-            System.out.println("Произошла ошибка при принятии голоса. Возможно, вы пытаетесь проголосовать второй раз");
+        int answerFromServer = server.checkVoice(bulletin, "Alice");
+        switch (answerFromServer) {
+            case 1:
+                System.out.println("Ваш голос успешно зачтен!");
+                break;
+            case 2:
+                System.out.println("Произошла ошибка, вы пытались проголосовать второй раз!");
+                break;
+            case 3:
+                System.out.println("Произошла попытка взлома!");
+                break;
         }
 
-        voting(rnd, 1);
+        voting(rnd, 0);
+
+        julik();
 
         readResultVote();
 
@@ -103,10 +112,55 @@ public class Lab5 {
         bulletin[0] = n;
         bulletin[1] = s;
 
-        if (server.checkVoice(bulletin, "Alice")) {
-            System.out.println("Ваш голос успешно зачтен!");
-        } else {
-            System.out.println("Произошла ошибка при принятии голоса. Возможно, вы пытаетесь проголосовать второй раз");
+        int answerFromServer = server.checkVoice(bulletin, "Alice");
+        switch (answerFromServer) {
+            case 1:
+                System.out.println("Ваш голос успешно зачтен!");
+                break;
+            case 2:
+                System.out.println("Произошла ошибка, вы пытались проголосовать второй раз!");
+                break;
+            case 3:
+                System.out.println("Произошла попытка взлома!");
+                break;
+        }
+    }
+
+    public static void julik() throws IOException {
+        BigInteger n, v, r, h, _h, _s, s;
+        Random random = new Random();
+        Vector resultEuclid;
+        BigInteger[] bulletin = new BigInteger[2];
+
+        do {
+            r = BigInteger.probablePrime(30, random);
+            resultEuclid = Lab1.generalizedEuclidsAlgorithm(server.getN(), r);
+        } while (resultEuclid.gcd.compareTo(BigInteger.ONE) != 0);
+
+        h = new BigInteger("ВЗЛОМ".hashCode() + "").abs();
+
+        //Пункт 4 и 5
+        _h = h.multiply(Lab1.fastModuloExponentiation(r, server.getD(), server.getN()));
+        _s = server.giveBulletin(_h);
+
+        //Пункт 6
+        s = _s.multiply(r.modInverse(server.getN()));
+
+        //Пункт 7
+        bulletin[0] = new BigInteger("1234567");
+        bulletin[1] = s;
+
+        int answerFromServer = server.checkVoice(bulletin, "Alice");
+        switch (answerFromServer) {
+            case 1:
+                System.out.println("Ваш голос успешно зачтен!");
+                break;
+            case 2:
+                System.out.println("Произошла ошибка, вы пытались проголосовать второй раз!");
+                break;
+            case 3:
+                System.out.println("Произошла попытка взлома!");
+                break;
         }
     }
 
