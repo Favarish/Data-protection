@@ -103,7 +103,9 @@ public class Main {
 //        Lab3.digitalSignatureElGamal();
 //        Lab3.digitalSignatureGOST();
 //        Lab4.mentalPoker();
-        Lab5.Vote();
+//        Lab5.Vote();
+        RGZ.graphColoringTask();
     }
+
 
 }
