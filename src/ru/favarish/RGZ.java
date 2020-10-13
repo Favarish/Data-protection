@@ -20,8 +20,6 @@ public class RGZ {
         BigInteger _z1;
         BigInteger _z2;
 
-        Edge edge = new Edge(1, 1, 1, 1);
-
         readFileGraph();
 
         for (Edge e : edges) {
@@ -42,7 +40,7 @@ public class RGZ {
             _z2 = Lab1.fastModuloExponentiation(z2Bobs, edgeForBob.getC2(), edgeForBob.getN2());
             if (!equalsYoungBit(_z1, _z2)) {
                 System.out.println("НЕПРАВИЛЬНЫЕ ЦВЕТА!");
-                //break; //для выхода из цикла
+                break; //для выхода из цикла
             } else {
                 System.out.println("Вершины разных цветов");
             }
