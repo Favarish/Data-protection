@@ -101,42 +101,34 @@ public class Edge {
         r2 = BigInteger.probablePrime(bitLength, random);
 
         r1 = subStrAndAddColor(r1.toString(2), color1);
-        r1 = subStrAndAddColor(r1.toString(2), color2);
+        r2 = subStrAndAddColor(r2.toString(2), color2);
 
         z1 = Lab1.fastModuloExponentiation(r1, d1, n1);
         z2 = Lab1.fastModuloExponentiation(r2, d2, n2);
     }
 
     public BigInteger subStrAndAddColor(String str, Integer colorNum){
-        String subStr = str.substring(0, str.length() - 3);
-        subStr += Integer.toBinaryString(colorNum);
-        return new BigInteger(subStr);
+        String subStr = str.substring(0, str.length() - 2);
+        switch (colorNum){
+            case 0 -> subStr += "00";
+            case 1 -> subStr += "01";
+            case 2 -> subStr += "10";
+        }
+        return new BigInteger(subStr,2);
     }
 
     //генерация чисел z и r, если она происходит каждый раз заново. Иначе это можно сделать в RSA
     public void generateRandZ(int colorFirst, int colorSecond, int colorThird) {
-        switch (color1){
-            case 0:
-                color1 = colorFirst;
-                break;
-            case 1:
-                color1 = colorSecond;
-                break;
-            case 2:
-                color1 = colorThird;
-                break;
+        switch (color1) {
+            case 0 -> color1 = colorFirst;
+            case 1 -> color1 = colorSecond;
+            case 2 -> color1 = colorThird;
         }
 
-        switch (color2){
-            case 0:
-                color2 = colorFirst;
-                break;
-            case 1:
-                color2 = colorSecond;
-                break;
-            case 2:
-                color2 = colorThird;
-                break;
+        switch (color2) {
+            case 0 -> color2 = colorFirst;
+            case 1 -> color2 = colorSecond;
+            case 2 -> color2 = colorThird;
         }
 
         Random random = new Random();
@@ -144,7 +136,7 @@ public class Edge {
         r2 = BigInteger.probablePrime(bitLength, random);
 
         r1 = subStrAndAddColor(r1.toString(2), color1);
-        r1 = subStrAndAddColor(r1.toString(2), color2);
+        r2 = subStrAndAddColor(r2.toString(2), color2);
 
         z1 = Lab1.fastModuloExponentiation(r1, d1, n1);
         z2 = Lab1.fastModuloExponentiation(r2, d2, n2);
@@ -180,5 +172,13 @@ public class Edge {
 
     public BigInteger getZ2() {
         return z2;
+    }
+
+    public Integer getColor1() {
+        return color1;
+    }
+
+    public Integer getColor2() {
+        return color2;
     }
 }
